@@ -13,7 +13,10 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
+    margin: 0;
+    overflow: hidden; /* hide scrollbar */
   }
+
   .player {
     border: 3px solid white;
     border-radius: 20px;
@@ -23,11 +26,13 @@
     box-shadow: 0 0 20px white;
     animation: pulse 2s infinite;
   }
+
   @keyframes pulse {
     0% { box-shadow: 0 0 10px white; }
     50% { box-shadow: 0 0 25px white; }
     100% { box-shadow: 0 0 10px white; }
   }
+
   .label { text-align: left; font-size: 18px; text-shadow:0 0 10px white; }
   .song-title { font-size:28px; margin:10px 0; text-shadow:0 0 15px white; }
   input[type="range"] { width:100%; margin:10px 0; accent-color:white; }
@@ -74,7 +79,6 @@
   const volumeSlider = document.getElementById('volume');
   const bassSlider = document.getElementById('bass');
 
-  // AudioContext for bass
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   const audioCtx = new AudioContext();
   const source = audioCtx.createMediaElementSource(audio);
@@ -83,26 +87,21 @@
   bass.frequency.setValueAtTime(200, audioCtx.currentTime);
   source.connect(bass).connect(audioCtx.destination);
 
-  // Play/Pause toggle
   playBtn.addEventListener('click', async () => {
     if(audioCtx.state === 'suspended') await audioCtx.resume();
     if(audio.paused) { audio.play(); playBtn.textContent='⏸'; }
     else { audio.pause(); playBtn.textContent='▶'; }
   });
 
-  // Update progress slider as music plays
   audio.addEventListener('timeupdate', () => {
     const percent = (audio.currentTime/audio.duration)*100;
     progress.value = percent || 0;
   });
 
-  // Seek audio
   progress.addEventListener('input', () => { audio.currentTime=(progress.value/100)*audio.duration; });
 
-  // Volume slider
   volumeSlider.addEventListener('input', () => { audio.volume=volumeSlider.value/1500; });
 
-  // Bass slider
   bassSlider.addEventListener('input', () => { bass.gain.setValueAtTime(bassSlider.value/10, audioCtx.currentTime); });
 </script>
 
