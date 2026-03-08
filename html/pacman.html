@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Glowing Music Player</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  body {
+    background-color: #000;
+    font-family: 'VT323', monospace;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .player {
+    border: 3px solid white;
+    border-radius: 20px;
+    padding: 30px;
+    width: 500px;
+    text-align: center;
+    box-shadow: 0 0 20px white;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 10px white; }
+    50% { box-shadow: 0 0 25px white; }
+    100% { box-shadow: 0 0 10px white; }
+  }
+  .label { text-align: left; font-size: 18px; text-shadow:0 0 10px white; }
+  .song-title { font-size:28px; margin:10px 0; text-shadow:0 0 15px white; }
+  input[type="range"] { width:100%; margin:10px 0; accent-color:white; }
+  .controls { display:flex; align-items:center; justify-content:space-between; margin-top:15px; }
+  .controls button { font-size:24px; background:none; border:none; color:white; cursor:pointer; text-shadow:0 0 10px white; transition:0.3s; }
+  .controls button:hover { text-shadow:0 0 20px white; }
+  .slider-container { display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .slider-container span { font-size:20px; text-shadow:0 0 10px white; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:15px; height:15px; border-radius:50%; background:white; cursor:pointer; box-shadow:0 0 10px white; }
+  input[type=range]::-moz-range-thumb { width:15px; height:15px; border-radius:50%; background:white; cursor:pointer; box-shadow:0 0 10px white; }
+</style>
+</head>
+<body>
+
+<div class="player">
+  <div class="label">Playing:</div>
+  <div class="song-title">Stepz - PACMAN</div>
+  
+  <input type="range" id="progress" min="0" max="100" value="0">
+
+  <div class="controls">
+    <button id="play">▶</button>
+
+    <div class="slider-container">
+      <span>🔊</span>
+      <input type="range" id="volume" min="0" max="1500" value="500">
+    </div>
+
+    <div class="slider-container">
+      <span>💥</span>
+      <input type="range" id="bass" min="0" max="1000" value="0">
+    </div>
+  </div>
+</div>
+
+<audio id="audio" loop>
+  <source src="https://uheamd84lalsdurhagjnxaa34.github.io/nxonvds/audio/pacman.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+  const audio = document.getElementById('audio');
+  const playBtn = document.getElementById('play');
+  const progress = document.getElementById('progress');
+  const volumeSlider = document.getElementById('volume');
+  const bassSlider = document.getElementById('bass');
+
+  // AudioContext for bass
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  const audioCtx = new AudioContext();
+  const source = audioCtx.createMediaElementSource(audio);
+  const bass = audioCtx.createBiquadFilter();
+  bass.type = 'lowshelf';
+  bass.frequency.setValueAtTime(200, audioCtx.currentTime);
+  source.connect(bass).connect(audioCtx.destination);
+
+  // Play/Pause toggle
+  playBtn.addEventListener('click', async () => {
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+    if(audio.paused) { audio.play(); playBtn.textContent='⏸'; }
+    else { audio.pause(); playBtn.textContent='▶'; }
+  });
+
+  // Update progress slider as music plays
+  audio.addEventListener('timeupdate', () => {
+    const percent = (audio.currentTime/audio.duration)*100;
+    progress.value = percent || 0;
+  });
+
+  // Seek audio
+  progress.addEventListener('input', () => { audio.currentTime=(progress.value/100)*audio.duration; });
+
+  // Volume slider
+  volumeSlider.addEventListener('input', () => { audio.volume=volumeSlider.value/1500; });
+
+  // Bass slider
+  bassSlider.addEventListener('input', () => { bass.gain.setValueAtTime(bassSlider.value/10, audioCtx.currentTime); });
+</script>
+
+</body>
+</html>
